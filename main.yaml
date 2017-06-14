@@ -1,0 +1,14 @@
+---
+- name: Harden the File System
+  hosts: all
+  roles:
+    - { role: manage-default-home }
+    - { role: remove-insecure-filesystems, tags: provision }
+    - { role: manage-yum-repos, tags: provision }
+    - { role: secure-boot, tags: provision }
+    - { role: manage-service-clients, tags: provision }
+    - { role: network-parameters, tags: provision }
+    - { role: uncommon-network-protocols, tags: provision }
+    - { role: audit-rules }
+    - { role: access-auth-automation }
+    - { role: secure-ssh, tags: provision }

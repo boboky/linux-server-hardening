@@ -1,0 +1,14 @@
+---
+
+- name: Check Uncommon Network Protocols
+  become: true
+  command: modprobe -n -v "{{ item }}"
+  register: uncommon_network_protocol_status
+  with_items: "{{ network_protocols }}"
+  ignore_errors: true
+
+- name: Remove Uncommon Network Protocols
+  become: true
+  shell: echo "install {{ item.item }} /bin/true" >> /etc/modprobe.d/CIS.conf
+  when: '"insmod" in item.stdout and "FATAL" not in item.stderr'
+  with_items: "{{ uncommon_network_protocol_status.results }}"

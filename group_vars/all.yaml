@@ -1,0 +1,148 @@
+---
+
+
+server:
+  
+  user:
+    default_home: "/home"
+    
+  audit:
+    space_left_action: "halt"
+    action_mail_acct: "root"
+    admin_space_left_action: "halt"
+    max_log_file_action: "keep_logs"
+    max_log_file: 20
+  network_parameters:
+      - name: "net.ipv4.ip_forward"
+        value: 0
+      - name: "net.ipv4.conf.all.send_redirects"
+        value: 0
+      - name: "net.ipv4.conf.default.send_redirects"
+        value: 0
+      - name: "net.ipv4.conf.all.accept_source_route"
+        value: 0
+      - name: "net.ipv4.conf.default.accept_source_route"
+        value: 0
+      - name: "net.ipv4.conf.all.accept_redirects"
+        value: 0
+      - name: "net.ipv4.conf.default.accept_redirects"
+        value: 0
+      - name: "net.ipv4.conf.all.secure_redirects"
+        value: 0
+      - name: "net.ipv4.conf.default.secure_redirects"
+        value: 0
+      - name: "net.ipv4.conf.all.log_martians"
+        value: 0
+      - name: "net.ipv4.conf.default.log_martians"
+        value: 0
+      - name: "net.ipv4.icmp_echo_ignore_broadcasts"
+        value: 1
+      - name: "net.ipv4.icmp_ignore_bogus_error_responses"
+        value: 1
+      - name: "net.ipv4.conf.all.rp_filter"
+        value: 1
+      - name: "net.ipv4.tcp_syncookies"
+        value: 1
+      - name: "net.ipv6.conf.all.accept_ra"
+        value: 0
+      - name: "net.ipv6.conf.default.accept_ra"
+        value: 0
+      - name: "net.ipv6.conf.all.accept_redirects"
+        value: 0
+      - name: "net.ipv6.conf.default.accept_redirects"
+        value: 0
+
+  network_ipv4_route_flush: "net.ipv4.route.flush=1"
+  network_ipv6_route_flush: "net.ipv6.route.flush=1"
+
+  sshd_config:
+    Protocol: 2
+    LogLevel: "INFO"
+    X11Forwarding: "no"
+    MaxAuthTries: 4
+    IgnoreRhosts: "yes"
+    HostBasedAuthentication: "no"
+    PermitRootLogin: "no"
+    PermitEmptyPasswords: "yes"
+    PermitUserEnvironment: "no"
+    Ciphers: "aes256-ctr,aes192-ctr,aes128-ctr"
+    MACs: "hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,umac-128@openssh.com"
+    ClientAliveInterval: 300
+    ClientAliveCountMax: 0
+    LoginGraceTime: 60
+
+file_systems: ['cramfs','freevxfs','jffs2','hfs','hfsplus','squashfs','udf','vfat','fat']
+service_clients: ['ypbind','rsh','talk','telnet','openldap-clients']
+network_protocols: ['dccp','sctp','rds','tipc']
+installed_rpm_query: "results[*].results[?repo=='installed']"
+
+audit_timechange_rules:
+  - "-a always,exit -F arch=b64 -S adjtimex -S settimeofday -k time-change"
+  - "-a always,exit -F arch=b32 -S adjtimex -S settimeofday -S stime -k time-change"
+  - "-a always,exit -F arch=b64 -S clock_settime -k time-change"
+  - "-a always,exit -F arch=b32 -S clock_settime -k time-change"
+  - "-w /etc/localtime -p wa -k time-change"
+
+audit_usergroup_change_rules:
+  - "-w /etc/group -p wa -k identity"
+  - "-w /etc/passwd -p wa -k identity"
+  - "-w /etc/gshadow -p wa -k identity"
+  - "-w /etc/shadow -p wa -k identity"
+  - "-w /etc/security/opasswd -p wa -k identity"
+
+audit_network_change_rules:
+  - "-a always,exit -F arch=b64 -S sethostname -S setdomainname -k system-locale"
+  - "-a always,exit -F arch=b32 -S sethostname -S setdomainname -k system-locale"
+  - "-w /etc/issue -p wa -k system-locale"
+  - "-w /etc/issue.net -p wa -k system-locale"
+  - "-w /etc/hosts -p wa -k system-locale"
+  - "-w /etc/sysconfig/network -p wa -k system-locale"
+  - "-w /etc/selinux/ -p wa -k MAC-policy"
+
+audit_login_logout_rules:
+  - "-w /var/log/lastlog -p wa -k logins"
+  - "-w /var/run/faillock/ -p wa -k logins"
+
+audit_session_rules:
+  - "-w /var/run/utmp -p wa -k session"
+  - "-w /var/log/wtmp -p wa -k session"
+  - "-w /var/log/btmp -p wa -k session"
+
+audit_access_control_rules:
+  - "-a always,exit -F arch=b64 -S chmod -S fchmod -S fchmodat -F auid>=1000 -F auid!=4294967295 -k perm_mod"
+  - "-a always,exit -F arch=b32 -S chmod -S fchmod -S fchmodat -F auid>=1000 -F auid!=4294967295 -k perm_mod"
+  - "-a always,exit -F arch=b64 -S chown -S fchown -S fchownat -S lchown -F auid>=1000 -F auid!=4294967295 -k perm_mod"
+  - "-a always,exit -F arch=b32 -S chown -S fchown -S fchownat -S lchown -F auid>=1000 -F auid!=4294967295 -k perm_mod"
+  - "-a always,exit -F arch=b64 -S setxattr -S lsetxattr -S fsetxattr -S removexattr -S lremovexattr -S fremovexattr -F auid>=1000 -F auid!=4294967295 -k perm_mod"
+  - "-a always,exit -F arch=b32 -S setxattr -S lsetxattr -S fsetxattr -S removexattr -S lremovexattr -S fremovexattr -F auid>=1000 -F auid!=4294967295 -k perm_mod"
+
+audit_failed_access_rules:
+  - "-a always,exit -F arch=b64 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 -k access"
+  - "-a always,exit -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 -k access"
+  - "-a always,exit -F arch=b64 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EPERM -F auid>=1000 -F auid!=4294967295 -k access"
+  - "-a always,exit -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EPERM -F auid>=1000 -F auid!=4294967295 -k access"
+
+audit_mount_commands:
+  - "-a always,exit -F arch=b64 -S mount -F auid>=1000 -F auid!=4294967295 -k mounts"
+  - "-a always,exit -F arch=b32 -S mount -F auid>=1000 -F auid!=4294967295 -k mounts"
+
+audit_file_deletions:
+  - "-a always,exit -F arch=b64 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete"
+  - "-a always,exit -F arch=b32 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete"
+
+audit_changes_sysadmin_scope:
+  - "-w /etc/sudoers -p wa -k scope"
+  - "-w /etc/sudoers.d -p wa -k scope"
+audit_collect_sysadmin_actions:
+  - "-w /var/log/sudo.log -p wa -k actions"
+
+audit_kernel_module_change:
+  - "-w /sbin/insmod -p x -k modules -w /sbin/rmmod -p x -k modules"
+  - "-w /sbin/modprobe -p x -k modules"
+  - "-a always,exit arch=b64 -S init_module -S delete_module -k modules"
+
+audit_prevent_changes:
+  - "-e 2"
+
+network_parameter_query: "network_parameters[*].{name: name, value: value}"
+audit_config: "/etc/audit/auditd.conf"

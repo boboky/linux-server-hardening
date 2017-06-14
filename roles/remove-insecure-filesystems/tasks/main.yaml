@@ -1,0 +1,20 @@
+---
+
+- name: Check FileSystem
+  become: true
+  command: modprobe -n -v "{{ item }}"
+  register: filesystem_status
+  with_items: "{{ file_systems }}"
+  ignore_errors: true
+
+- name: Remove FileSytem
+  become: true
+  shell: echo "install {{ item.item }} /bin/true" >> /etc/modprobe.d/CIS.conf
+  when: '"insmod" in item.stdout and "FATAL" not in item.stderr'
+  with_items: "{{ filesystem_status.results }}"
+
+- name: Check AutoFs
+  become: true
+  command: systemctl is-enabled autofs
+  register: autofs_status
+  ignore_errors: true

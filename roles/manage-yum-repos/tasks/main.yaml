@@ -1,0 +1,86 @@
+---
+
+- name: Ensure gpgcheck is true
+  replace:
+    name: /etc/yum.conf
+    regexp: '^gpgcheck=0'
+    replace: '\1 gpgcheck=1'
+  register: gpgcheck
+  tags:
+    - provision
+
+- name: disable Redhat Subscription Service Daemon
+  command: chkconfig rhnsd off
+  ignore_errors: true
+  tags: provision
+
+- name: Check Prelink installed
+  yum:
+    list: prelink
+  register: prelink_status
+  ignore_errors: true
+  tags:
+    - provision
+
+- name: Check AIDE installed
+  yum:
+    list: aide
+  register: aide_status
+  ignore_errors: true
+  tags:
+    - provision
+
+- name: Install AIDE
+  become: true
+  yum: name=aide
+  when: aide_status.results[0].repo != "installed"
+  register: aide_install_status
+
+- stat:
+    path: /var/lib/aide/aide.db.gz
+  become: true
+  register: st
+
+- name: Configure AIDE
+  become: true
+  command: aide --init
+  when: st.stat.exists == False
+
+- name: Put New AIDE Database in place.
+  become: true
+  command: mv /var/lib/aide/aide.db.new.gz /var/lib/aide/aide.db.gz
+  when: st.stat.exists == False
+
+- name: Remove Prelink from existing binaries
+  become: true
+  command: prelink -ua
+  ignore_errors: true
+  when: aide_install_status.rc == 0 and prelink_status.results[0].repo == "installed"
+
+- name: Add AIDE to crontab
+  become: true
+  cron:
+    name: Execute AIDE
+    minute: 0
+    hour: 5
+    job: /usr/sbin/aide --check
+
+- name: Check TCP Wrappers is installed
+  yum:
+    list: tcp_wrappers
+  register: tcpwrappers_status
+
+- name: Install TCP Wrappers
+  become: true
+  yum: name=tcp_wrappers
+  when: tcpwrappers_status.results[0].repo != "installed"
+
+- name: Check rsyslog is installed
+  yum:
+    list: rsyslog
+  register: rsyslog_status
+
+- name: Install rsyslog
+  become: true
+  yum: name=rsyslog
+  when: rsyslog_status.results[0].repo != "installed"

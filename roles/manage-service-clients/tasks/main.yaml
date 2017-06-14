@@ -1,0 +1,23 @@
+---
+
+- name: Check Service Clients
+  become: true
+  yum:
+    list: "{{ item }}"
+  register: service_clients_list
+  with_items: "{{ service_clients }}"
+  ignore_errors: true
+
+- debug: var=service_clients_list
+
+- name: Test Array
+  debug: var=item
+  with_items: "{{service_clients_list|json_query(installed_rpm_query)}}"
+
+
+- name: Remove Installed Service Clients
+  become: true
+  yum:
+    name: "{{ item }}"
+    state: absent
+  with_items: "{{service_clients_list|json_query(installed_rpm_query)}}"

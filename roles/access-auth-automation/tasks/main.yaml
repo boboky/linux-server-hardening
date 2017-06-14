@@ -1,0 +1,75 @@
+---
+
+- name: Enable cron
+  become: true
+  command: systemctl enable crond
+
+- name: Set crontab permissions
+  become: true
+  file:
+    name: /etc/crontab
+    owner: root
+    group: root
+    mode: 0600
+
+- name: Set cron hourly permissions
+  become: true
+  file:
+    name: /etc/cron.hourly
+    owner: root
+    group: root
+    mode: 0600
+
+- name: Set cron daily permissions
+  become: true
+  file:
+    name: /etc/cron.daily
+    owner: root
+    group: root
+    mode: 0600
+
+- name: Set cron weekly permissions
+  become: true
+  file:
+    name: /etc/cron.weekly
+    owner: root
+    group: root
+    mode: 0600
+
+- name: Set cron monthly permissions
+  become: true
+  file:
+    name: /etc/cron.monthly
+    owner: root
+    group: root
+    mode: 0600
+
+- name: Set cron.d permissions
+  become: true
+  file:
+    name: /etc/cron.d
+    owner: root
+    group: root
+    mode: 0600
+
+- name: Remove cron deny files
+  become: true
+  file:
+    name: "{{item}}"
+    state: absent
+  with_items:
+    - "/etc/cron.deny"
+    - "/etc/at.deny"
+
+- name: Create Required Cron files
+  become: true
+  file:
+    name: "{{item}}"
+    owner: root
+    group: root
+    mode: 0600
+    state: touch
+  with_items:
+    - "/etc/cron.allow"
+    - "/etc/at.allow"
+

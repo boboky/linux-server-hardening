@@ -1,0 +1,29 @@
+---
+
+- name: Display network_parameters
+  debug: var=item
+  with_items: "{{server|json_query(network_parameter_query)}}"
+
+- name: Disable IPV4 Forwarding
+  become: true
+  lineinfile:
+    name: /etc/sysctl.conf
+    line: "{{item.name}}={{item.value}}"
+  with_items: "{{server|json_query(network_parameter_query)}}"
+
+- name: Set Active Kernel Parameters
+  become: true
+  command: sysctl -w {{item.name}}={{item.value}}
+  with_items: "{{server|json_query(network_parameter_query)}}"
+
+- name: Disable IPV6
+  become: true
+  shell: echo "options ipv6 disable=1" >> /etc/modprobe.d/CIS.conf
+
+- name: Flush IPV4 Routing
+  become: true
+  command: sysctl -w "{{server.network_ipv4_route_flush}}"
+
+- name: Flush IPV6 Routing
+  become: true
+  command: sysctl -w "{{server.network_ipv6_route_flush}}"

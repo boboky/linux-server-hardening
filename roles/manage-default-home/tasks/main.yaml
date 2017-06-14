@@ -1,0 +1,8 @@
+---
+
+- name: Change the Default Home directory
+  lineinfile:
+    name: /etc/default/useradd
+    regexp: '^HOME='
+    line: 'HOME={{server.user.default_home}}'
+  become: true

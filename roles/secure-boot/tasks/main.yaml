@@ -1,0 +1,16 @@
+---
+
+- name: Check Grub Permissions
+  stat:
+    path: /boot/grub2/grub.cfg
+  register: grub_stat
+  become: true
+
+- name: Change Grub Permissions and Ownership
+  become: true
+
+  file:
+    name: /boot/grub2/grub.cfg
+    owner: root
+    group: root
+    mode: 0600

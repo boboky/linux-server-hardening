@@ -1,0 +1,92 @@
+---
+
+- name: Configure Space Left Action
+  become: true
+  lineinfile:
+    name: "{{audit_config}}"
+    regexp: '^space_left_action'
+    line: "space_left_action = {{server.audit.space_left_action}}"
+
+- name: Configure Max Logfile Size
+  become: true
+  lineinfile:
+    name: "{{audit_config}}"
+    regexp: '^max_log_file'
+    line: "max_log_file = {{server.audit.max_log_file}}"
+
+- name: Configure Action Mail Account
+  become: true
+  lineinfile:
+    name: "{{audit_config}}"
+    regexp: '^action_mail_acct'
+    line: "action_mail_acct = {{server.audit.action_mail_acct}}"
+
+- name: Configure Space Left Action
+  become: true
+  lineinfile:
+    name: "{{audit_config}}"
+    regexp: '^admin_space_left_action'
+    line: "admin_space_left_action = {{server.audit.admin_space_left_action}}"
+
+- name: Configure Max Logfile Action
+  become: true
+  lineinfile:
+    name: "{{audit_config}}"
+    regexp: '^max_log_file_action'
+    line: "max_log_file_action = {{server.audit.max_log_file_action}}"
+
+- name: Audit Preboot Services
+  become: true
+  lineinfile:
+    backrefs: true
+    name: "/etc/default/grub"
+    #regexp: '(^GRUB_CMDLINE_LINUX=(\s+(?!audit=1)[\w=/\-\.]+)*)\s*$'
+    regexp: '^(GRUB_CMDLINE_LINUX=(?!.*\baudit=1\b).*)"$'
+    line: '\1 audit=1"'
+
+- name: Apply Audit Rules
+  become: true
+  lineinfile:
+    name: "/etc/audit/rules.d/audit.rules"
+    line: "{{item}}"
+  with_items:
+    - "{{audit_timechange_rules}}"
+    - "{{audit_usergroup_change_rules}}"
+    - "{{audit_network_change_rules}}"
+    - "{{audit_login_logout_rules}}"
+    - "{{audit_access_control_rules}}"
+    - "{{audit_failed_access_rules}}"
+    - "{{audit_mount_commands}}"
+    - "{{audit_file_deletions}}"
+    - "{{audit_changes_sysadmin_scope}}"
+    - "{{audit_collect_sysadmin_actions}}"
+    - "{{audit_kernel_module_change}}"
+    - "{{audit_prevent_changes}}"
+
+- name: Ensure auditd is enabled
+  become: true
+  command: systemctl enable auditd
+
+#- name: Reload Audit Rules
+#  become: true
+#  command: /sbin/augenrules --load
+
+- name: Reconfigure Grub
+  become: true
+  command: /sbin/grub2-mkconfig > /boot/grub2/grub.cfg
+
+- name: Enable rsyslog
+  become: true
+  command: systemctl enable rsyslog
+
+- name: Set rsyslog.conf file create permissions
+  become: true
+  lineinfile:
+    name: /etc/rsyslog.conf
+    line: "$FileCreateMode 0640"
+
+- name: Set existing log file permissions
+  become: true
+  command: find /var/log -type f -exec chmod g-wx,o-rwx {} +
+
+
