@@ -3,12 +3,12 @@
 - name: Set sshd_config permissions
   become: true
   file:
-    name: /etc/ssh/sshd_config
+    path: /etc/ssh/sshd_config
     owner: root
     group: root
     mode: 0600
 
-- name: Update sshd_config
+- name: Update sshd_config RHEL 7
   become: true
   template:
     src: sshd_config.j2
@@ -18,21 +18,63 @@
     mode: 0600
   tags:
     - sshd_config
+  when: ansible_distribution == "RedHat" and ansible_distribution_major_version == '7'
+
+- name: Update sshd_config RHEL 6
+  become: true
+  template:
+    src: sshd_config_rhel6.j2
+    dest: /etc/ssh/sshd_config
+    owner: root
+    group: root
+    mode: 0600
+  tags:
+    - sshd_config
+  when: ansible_distribution == "RedHat" and ansible_distribution_major_version == '6'
+
+
+- name: Check pwquality
+  stat:
+    path: /etc/security/pwquality.conf
+  register: pwquality_exists
 
 - name: Configure Password strength
   become: true
   lineinfile:
     regexp={{ item.key }}
     line={{ item.value }}
-    name=/etc/security/pwquality.conf
+    path=/etc/security/pwquality.conf
   with_items:
     - { key: "^# minlen", value: "minlen=14" }
     - { key: "^# dcredit", value: "dcredit=-1"}
     - { key: "^# ucredit", value: "ucredit=-1"}
     - { key: "^# ocredit", value: "ocredit=-1"}
     - { key: "^# lcredit", value: "lcredit=-1"}
+  when: pwquality_exists.stat.exists == True
 
+- name: Configure RHEL6 Password Auth Password Strength
+  become: true
+  template:
+    src: password-auth.j2
+    dest: /etc/pam.d/password-auth-ac
+    owner: root
+    group: root
+    mode: 644
+  tags:
+    - sshd_config
+  when: ansible_distribution == "RedHat" and ansible_distribution_major_version == '6'
 
+- name: Configure RHEL6 System Auth Password Strength
+  become: true
+  template:
+    src: system-auth.j2
+    dest: /etc/pam.d/system-auth-ac
+    owner: root
+    group: root
+    mode: 644
+  tags:
+    - sshd_config
+  when: ansible_distribution == "RedHat" and ansible_distribution_major_version == '6'
 
 - name: Configure password-auth
   become: true

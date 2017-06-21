@@ -1,12 +1,18 @@
 ---
 
-- name: Check Grub Permissions
+- name: grub.conf present
   stat:
-    path: /boot/grub2/grub.cfg
-  register: grub_stat
+    path: /boot/grub/grub.conf
+  register: grub_conf
   become: true
 
-- name: Change Grub Permissions and Ownership
+- name: grub.cfg present
+  stat:
+    path: /boot/grub2/grub.cfg
+  register: grub_cfg
+  become: true
+
+- name: Change Grub Permissions and Ownership RHEL 7
   become: true
 
   file:
@@ -14,3 +20,14 @@
     owner: root
     group: root
     mode: 0600
+  when: grub_cfg.stat.exists == True
+
+- name: Change Grub Permissions and Ownership RHEL 6
+  become: true
+
+  file:
+    name: /boot/grub/grub.conf
+    owner: root
+    group: root
+    mode: 0600
+  when: grub_conf.stat.exists == True

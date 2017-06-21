@@ -35,6 +35,12 @@
     regexp: '^max_log_file_action'
     line: "max_log_file_action = {{server.audit.max_log_file_action}}"
 
+- name: default/grub present
+  stat:
+    path: /etc/default/grub
+  register: grub_grub
+  become: true
+
 - name: Audit Preboot Services
   become: true
   lineinfile:
@@ -43,6 +49,7 @@
     #regexp: '(^GRUB_CMDLINE_LINUX=(\s+(?!audit=1)[\w=/\-\.]+)*)\s*$'
     regexp: '^(GRUB_CMDLINE_LINUX=(?!.*\baudit=1\b).*)"$'
     line: '\1 audit=1"'
+  when: grub_grub.stat.exists == True
 
 - name: Apply Audit Rules
   become: true
@@ -66,18 +73,37 @@
 - name: Ensure auditd is enabled
   become: true
   command: systemctl enable auditd
+  when: ansible_distribution == "RedHat" and ansible_distribution_major_version == '7'
 
+- name: Ensure auditd is enabled
+  become: true
+  command: chkconfig auditd on
+  when: ansible_distribution == "RedHat" and ansible_distribution_major_version == '6'
+ 
 #- name: Reload Audit Rules
 #  become: true
 #  command: /sbin/augenrules --load
 
+- name: grub2-mkconfig present
+  stat:
+    path: /sbin/grub2-mkconfig
+  register: mkconfig
+  become: true
+
 - name: Reconfigure Grub
   become: true
   command: /sbin/grub2-mkconfig > /boot/grub2/grub.cfg
+  when: mkconfig.stat.exists == True
 
 - name: Enable rsyslog
   become: true
   command: systemctl enable rsyslog
+  when: ansible_distribution == "RedHat" and ansible_distribution_major_version == '7'
+
+- name: Enable rsyslog
+  become: true
+  command: chkconfig rsyslog on
+  when: ansible_distribution == "RedHat" and ansible_distribution_major_version == '7'
 
 - name: Set rsyslog.conf file create permissions
   become: true

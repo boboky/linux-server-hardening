@@ -1,5 +1,11 @@
 ---
 
+- name: Install libselinux-python
+  become: true
+  yum:
+    name: "libselinux-python"
+    state: present
+
 - name: Display network_parameters
   debug: var=item
   with_items: "{{server|json_query(network_parameter_query)}}"

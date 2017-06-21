@@ -18,6 +18,7 @@
 - name: Remove Installed Service Clients
   become: true
   yum:
-    name: "{{ item }}"
+    name: "{{ item.item }}"
     state: absent
-  with_items: "{{service_clients_list|json_query(installed_rpm_query)}}"
+  with_items: "{{service_clients_list.results}}"
+  when: (item.results[0].yumstate == "installed")

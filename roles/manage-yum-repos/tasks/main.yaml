@@ -15,6 +15,7 @@
   tags: provision
 
 - name: Check Prelink installed
+  become: true
   yum:
     list: prelink
   register: prelink_status
@@ -23,6 +24,7 @@
     - provision
 
 - name: Check AIDE installed
+  become: true
   yum:
     list: aide
   register: aide_status
@@ -66,6 +68,7 @@
     job: /usr/sbin/aide --check
 
 - name: Check TCP Wrappers is installed
+  become: true
   yum:
     list: tcp_wrappers
   register: tcpwrappers_status
@@ -76,6 +79,7 @@
   when: tcpwrappers_status.results[0].repo != "installed"
 
 - name: Check rsyslog is installed
+  become: true
   yum:
     list: rsyslog
   register: rsyslog_status
